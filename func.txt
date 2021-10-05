@@ -1,0 +1,25 @@
+struct imagem *converte_P3(struct imagem *img, FILE *arq){
+  int valor, i;
+
+  arq = fopen(arq, "r");
+  if(!arq){
+  	fprintf(stderr, "Erro ao abrir pastilhas!\n");
+  	exit(1);
+  }
+
+  fread(&valor, sizeof(char), 1, arq);
+  i++;
+  while(!feof(arq)){
+  	// Apenas aqui começam as cores
+  	if(i > 13){
+  	  valor = (int)valor;
+  	  img
+  	}	
+  	fread(&valor, sizeof(char), 1, arq);
+  	i++;
+  }
+  rewind(arq);
+
+}
+
+struct imagem *converte_P3(struct imagem *img, FILE *arq);
