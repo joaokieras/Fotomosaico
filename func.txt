@@ -23,3 +23,28 @@ struct imagem *converte_P3(struct imagem *img, FILE *arq){
 }
 
 struct imagem *converte_P3(struct imagem *img, FILE *arq);
+
+imagem *img_aux;
+      img_aux->tipo = tipo_pastilha;
+      img_aux->altura = tam_pastilha;
+      img_aux->largura = tam_pastilha;
+      img_aux = aloca_pixel(img_aux, img_aux.altura);
+      if(vetor[i].tipo == '3')
+        vetor[i] = converte_P3(vetor[i], pastilha);
+      vetor[i] = img_aux;
+
+
+printf("-------------------------------\n");
+  printf("Tipo: P%c\n", vetor_pastilhas[0].tipo);
+  printf("Tamahno: %dx%d\n", vetor_pastilhas[0].altura, vetor_pastilhas[0].largura);
+  printf("Cores medias: R: %d G: %d B: %d\n", vetor_pastilhas[0].cor_imagem->r, vetor_pastilhas[0].cor_imagem->g, vetor_pastilhas[0].cor_imagem->b);
+  printf("Matriz numerica:\n");
+  for(int i = 0;i < vetor_pastilhas[0].altura;i++){
+    for(int j = 0;j < vetor_pastilhas[0].largura * 3;j++){
+      printf("%d ", vetor_pastilhas[0].pixel[i][j]);
+    }
+    printf("\n");
+  }
+
+
+  //printf("TIPO P3 --- R:%d G:%d B:%d \n", vetor[i].cor_imagem->r, vetor[i].cor_imagem->g, vetor[i].cor_imagem->b);

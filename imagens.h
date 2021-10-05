@@ -24,8 +24,9 @@ int verifica_diretorio(char *nome_dir);
 int verifica_tam_pastilha(FILE *arq);
 char verifica_tipo_pastilha(FILE *arq);
 void print_help();
-struct imagem *aloca_vetor(struct imagem *vetor, int tam_vetor);
 void aloca_pixel(struct imagem *img);
+struct imagem *aloca_vetor(struct imagem *vetor, int tam_vetor);
 struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_dir);
-
+struct imagem calcula_cor_P3(struct imagem *img, FILE *arq);
+struct imagem calcula_cor_P6(struct imagem *img, FILE *arq);
 #endif

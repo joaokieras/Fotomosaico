@@ -42,6 +42,5 @@ int main(int argc, char *argv[]){
   vetor_pastilhas = carrega_pastilhas(vetor_pastilhas, caminho_dir, tam_dir);
 
 
-
   return 0;
 }
