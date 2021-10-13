@@ -201,7 +201,7 @@ struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int
   	aux = arq;
   else{
   	aux = fopen(nome_img, "r");
-    if(!arq){
+    if(!aux){
   	  perror("Erro ao abrir imagem\n");
   	  exit(1);
     }
@@ -247,6 +247,26 @@ struct imagem *constroi_mosaico(struct imagem *img, struct imagem *vetor, int ta
         }
     }
   return img;
+}
+
+void gera_imagem_saida(struct imagem *img_in, FILE *img_out){
+  int i, j;
+
+  fprintf(img_out, "P%c\n", img_in->tipo);
+  fprintf(img_out, "%d %d\n", img_in->largura, img_in->altura);
+  fprintf(img_out, "%d\n", 255);
+
+  if(img_in->tipo == '6'){
+    for(i = 0;i < img_in->altura;i++)
+      fwrite(img_in->pixel[i], 1, 3*img_in->largura, img_out);
+  }
+  else{
+    fwrite("\n", sizeof(char), 1, img_out);
+    for(i = 0;i < img_in->altura;i++)
+      for(j = 0;j < 3*img_in->largura;j++)
+        fprintf(img_out, "%d ", img_in->pixel[i][j]);
+  }
+  fclose(img_out);
 }
 
 int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){

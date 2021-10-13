@@ -28,6 +28,7 @@ void print_help();
 void aloca_pixel(struct imagem *img);
 void print_erro();
 void libera_memoria(struct imagem *vetor, struct imagem *img, int tam);
+void gera_imagem_saida(struct imagem *img_in, FILE *img_out);
 struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_pastilha, struct cores *cor);
 struct imagem *aloca_vetor(int tam_vetor);
 struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_dir);

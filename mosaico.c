@@ -27,18 +27,20 @@ int main(int argc, char *argv[]){
         exit(1);
         break;
     }
-
-  fprintf(stderr, "Reading tiles from %s\n", caminho_dir);
   // Conta pastilhas no diretorio
+  fprintf(stderr, "Reading tiles from %s\n", caminho_dir);
   tam_dir = tam_diretorio(caminho_dir);
   fprintf(stderr, "%d tiles read\n", tam_dir);
+
   // Verifica propriedades das pastilhas (tipo e tamanho)
   tam_pastilha = verifica_diretorio(caminho_dir);
   fprintf(stderr, "Tile size is %dx%d\n", tam_pastilha, tam_pastilha);
+
   // Cria vetor de imagens contendo todas as pastilhas do diretório
   imagem *vetor_pastilhas;
   vetor_pastilhas = aloca_vetor(tam_dir);
   vetor_pastilhas = carrega_pastilhas(vetor_pastilhas, caminho_dir, tam_dir);
+
   // Processa entradas do programa
   // Arquivo de entrada
   int padrao = 0;
@@ -53,11 +55,10 @@ int main(int argc, char *argv[]){
   fprintf(stderr, "Building mosaic image\n");
   img_in = constroi_mosaico(img_in, vetor_pastilhas, tam_dir); 
 
-
-  FILE *img_saida;
   // Arquivo de saída
+  FILE *img_saida;
   if(flag_out){
-    fprintf(stderr, "Entrada por -o\n");
+    fprintf(stderr, "Saída por -o\n");
     if(!(img_saida = fopen(arq_out, "wb"))){
       fprintf(stderr, "Nao foi possivel abrir o arquivo!\n");
       exit(1);
@@ -66,21 +67,9 @@ int main(int argc, char *argv[]){
   else
     img_saida = stdout;
 
+  // Escreve arquivo de saída
   fprintf(stderr, "Writing output file\n");
-  fprintf(img_saida, "P%c\n", img_in->tipo);
-  fprintf(img_saida, "%d %d\n", img_in->largura, img_in->altura);
-  fprintf(img_saida, "%d\n", 255);
-  if(img_in->tipo == '6'){
-    for(int i = 0;i < img_in->altura;i++)
-      fwrite(img_in->pixel[i], 1, 3*img_in->largura, img_saida);
-  }
-  else{
-    fwrite("\n", sizeof(char), 1, img_saida);
-    for(int i = 0;i < img_in->altura;i++)
-      for(int j = 0;j < 3*img_in->largura;j++)
-        fprintf(img_saida, "%d ", img_in->pixel[i][j]);
-  }
-  fclose(img_saida);
+  gera_imagem_saida(img_in, img_saida);
   libera_memoria(vetor_pastilhas, img_in, tam_dir);
   return 0;
 }
