@@ -6,11 +6,16 @@
 #include "imagens.h"
 
 void print_help(){
-	fprintf(stderr, "Este programa gera fotomosaicos a partir de uma imagem de entrada!\n");
-    fprintf(stderr, "Digite -i para indicar a imagem de entrada\n");
-    fprintf(stderr, "Digite -o para indicar a imagem de saida\n");
-	fprintf(stderr, "Digite -p para indicar o diretorio de pastilhas\n");  
-	fprintf(stderr, "~$ ./mosaico -i input.ppm -o output.ppm -p diretorio/\n");  
+  fprintf(stderr, "Este programa gera fotomosaicos a partir de uma imagem de entrada!\n");
+  fprintf(stderr, "Digite -i para indicar a imagem de entrada\n");
+  fprintf(stderr, "Digite -o para indicar a imagem de saida\n");
+  fprintf(stderr, "Digite -p para indicar o diretório de pastilhas\n");  
+  fprintf(stderr, "~$ ./mosaico -i input.ppm -o output.ppm -p diretorio/\n");  
+}
+
+void print_erro(){
+  fprintf(stderr, "Erro na alocação de memória!\n");
+  exit(1);
 }
 
 // Percorre o diretório e conta quantas pastilhas existem
@@ -26,8 +31,8 @@ int tam_diretorio(char *nome_dir){
   }
   while((dir = readdir(diretorio_pastilhas)) != NULL)
   	cont_dir++;
-  return cont_dir - 2; // tam-2 por conta dos arquivos "." e ".."
   closedir(diretorio_pastilhas);
+  return cont_dir - 2; // tam-2 por conta dos arquivos "." e ".."
 }
 
 // Percorre o diretório verificando o tipo e o tamanho de cada pastilha
@@ -58,7 +63,7 @@ int verifica_diretorio(char *nome_dir){
   	  pastilha = fopen(caminho_dir, "r");
   	  tipo_pastilha = verifica_tipo_pastilha(pastilha);
   	  if(tipo_pastilha != '3' && tipo_pastilha != '6'){
-  	  	printf("Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha);
+  	  	fprintf(stderr, "Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha);
   	  	exit(1);
   	  }
   	  tam_pastilha = verifica_tam_pastilha(pastilha);
@@ -100,19 +105,19 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
   	  pastilha = fopen(caminho_dir, "r");
   	  tipo_pastilha = verifica_tipo_pastilha(pastilha);
   	  if(tipo_pastilha != '3' && tipo_pastilha != '6'){
-  	  	printf("Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha);
+  	  	fprintf(stderr, "Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha);
   	  	exit(1);
   	  }
   	  tam_pastilha = verifica_tam_pastilha(pastilha);
   	  // Faz a cópia de dados da pastilha para struct imagem
-      vetor[i].tipo = tipo_pastilha;
-      vetor[i].altura = tam_pastilha;
-      vetor[i].largura = tam_pastilha;
-      aloca_pixel(&vetor[i]);
-      if(vetor[i].tipo == '6')
-      	vetor[i] = calcula_cor_P6(&vetor[i], pastilha);
+  	  vetor[i].tipo = tipo_pastilha;
+  	  vetor[i].altura = tam_pastilha;
+  	  vetor[i].largura = tam_pastilha;
+  	  aloca_pixel(&vetor[i]);
+  	  if(vetor[i].tipo == '6')
+        vetor[i] = calcula_cor_P6(&vetor[i], pastilha);
       else
-      	vetor[i] = calcula_cor_P3(&vetor[i], pastilha);
+        vetor[i] = calcula_cor_P3(&vetor[i], pastilha);
       // -----------------------------------------------------
   	  memset(caminho_dir, 0, strlen(caminho_dir));
   	  strcpy(caminho_dir, nome_dir);
@@ -122,20 +127,21 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
   	dir = readdir(diretorio_pastilhas);
   }
   closedir(diretorio_pastilhas); 
-  fprintf(stderr, "%d imagens carregadas na memoria\n", i); 
-  fprintf(stderr, "Calculando cores...\n");
+  //fprintf(stderr, "%d imagens carregadas na memoria\n", i); 
+  fprintf(stderr, "Calculating tiles' average colors\n");
   return vetor;
 }
 
 // Para calcular a cor de PPM P3 é utilizado fscanf
 struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
-  unsigned char r, g, b;
-  int int_r = 0, int_g = 0, int_b = 0;
-  int i, j, total, numero;
-  // 32x32 ou 20x20
-  total = img->altura * img->altura;
+  int r = 0, g = 0, b = 0;
+  int i, j, numero, total;
+  
+  total = img->altura * img->largura;
+  rewind(arq);
   fseek(arq, 13, SEEK_SET);
   // Neste método é necessário ler 1 número por vez
+  // Copia números da imagem PPM para matriz pixel[i][j]
   for(i = 0;i < img->altura;i++)
   	for(j = 0;j < (img->largura * 3);j++){
   		fscanf(arq, "%d", &numero);
@@ -144,58 +150,156 @@ struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
 
   for(i = 0;i < img->altura;i++)
   	for(j = 0;j < (img->largura * 3) - 2;j += 3){
-  		r = img->pixel[i][j];
-  		g = img->pixel[i][j + 1];
-  		b = img->pixel[i][j + 2];
-        // (r * r)
-  		int_r += (int)r * (int)r;
-  		int_g += (int)g * (int)g;
-  		int_b += (int)b * (int)b;
+  		r += (int)img->pixel[i][j] * (int)img->pixel[i][j];
+  		g += (int)img->pixel[i][j + 1] * (int)img->pixel[i][j + 1];
+  		b += (int)img->pixel[i][j + 2] * (int)img->pixel[i][j + 2];
   	}
   // Soma dos quadrados das cores dividido pelas raizes das médias
   img->cor_imagem = malloc(sizeof(cores));
-  img->cor_imagem->r = sqrt(int_r/total);
-  img->cor_imagem->g = sqrt(int_g/total);
-  img->cor_imagem->b = sqrt(int_b/total);	
+  if(img->cor_imagem == NULL)
+  	print_erro();
+  img->cor_imagem->r = sqrt(r/total);
+  img->cor_imagem->g = sqrt(g/total);
+  img->cor_imagem->b = sqrt(b/total);	
   return *img;
 }
 
 // Para calcular a cor de PPM P6 é utilizado fread
 struct imagem calcula_cor_P6(struct imagem *img, FILE *arq){
-  unsigned char r, g, b;
-  int int_r = 0, int_g = 0, int_b = 0;
-  int i, j, total;
+  int r = 0, g = 0, b = 0;
+  int i, j, total = 0;
 
-  total = img->altura * img->altura;
+  total = img->altura * img->largura;
+  rewind(arq);
+  fseek(arq, 13, SEEK_SET);
   // Lê linha por linha do arquivo da pastilha (blocos de números)
   for(i = 0;i < img->altura;i++)
   	fread(img->pixel[i], 1, 3 * img->largura, arq);
 
   for(i = 0;i < img->altura;i++)
   	for(j = 0;j < (img->largura * 3) - 2;j += 3){
-  		r = img->pixel[i][j];
-  		g = img->pixel[i][j + 1];
-  		b = img->pixel[i][j + 2];
-
-  		int_r += (int)r * (int)r;
-  		int_g += (int)g * (int)g;
-  		int_b += (int)b * (int)b;
+  		r += (int)img->pixel[i][j] * (int)img->pixel[i][j];
+  		g += (int)img->pixel[i][j + 1] * (int)img->pixel[i][j + 1];
+  		b += (int)img->pixel[i][j + 2] * (int)img->pixel[i][j + 2];
   	}
 
   img->cor_imagem = malloc(sizeof(cores));
-  img->cor_imagem->r = sqrt(int_r/total);
-  img->cor_imagem->g = sqrt(int_g/total);
-  img->cor_imagem->b = sqrt(int_b/total);	
+  if(img->cor_imagem == NULL)
+  	print_erro();
+  img->cor_imagem->r = sqrt(r/total);
+  img->cor_imagem->g = sqrt(g/total);
+  img->cor_imagem->b = sqrt(b/total);	
   return *img;
 }
 
-struct imagem *aloca_vetor(struct imagem *vetor, int tam_vetor){
-  vetor = malloc(tam_vetor * sizeof(*vetor));
-  if(vetor == NULL){
-  	fprintf(stderr, "Erro na alocacao de vetor!\n");
-  	exit(1);
+struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int padrao){
+  int tam_img1, tam_img2;
+  char img_tipo;
+  FILE *aux;
+
+  if(padrao)
+  	aux = arq;
+  else{
+  	aux = fopen(nome_img, "r");
+    if(!arq){
+  	  perror("Erro ao abrir imagem\n");
+  	  exit(1);
+    }
   }
-  fprintf(stderr, "Vetor de imagens criado\n");
+  img_tipo = verifica_tipo_pastilha(aux);
+  fscanf(aux, "%d", &tam_img1);
+  fscanf(aux, "%d", &tam_img2);
+  aloca_pixel(img);
+  img->tipo = img_tipo;
+  img->altura = tam_img2;
+  img->largura = tam_img1;
+  if(img->tipo == '6')
+  	*img = calcula_cor_P6(img, aux);
+  else
+    *img = calcula_cor_P3(img, aux);
+  fclose(aux);
+  return img;
+}
+
+struct imagem *constroi_mosaico(struct imagem *img, struct imagem *vetor, int tam_vetor){
+  int tam_pastilha, i, j, m, n, menor_index = 0, lim_altura, lim_largura;
+  struct cores *cor;
+
+  cor = malloc(sizeof(cor));
+  if(cor == NULL)
+    print_erro();
+
+  tam_pastilha = vetor[0].altura;
+  lim_altura = (img->altura % tam_pastilha);
+  lim_largura = ((img->largura * 3) % (3 * tam_pastilha));
+
+  for(i = 0;i < img->altura - lim_altura;i += tam_pastilha)
+    for(j = 0;j < (img->largura * 3) - lim_largura;j += 3 * tam_pastilha){
+      // Calcula cor media de blocos Nx3N dentro da img principal
+      cor = calcula_cor_img(img, i, j, tam_pastilha, cor);
+      menor_index = procura_pastilha(cor, vetor, tam_vetor);
+      // Substitui pastilhas na img principal
+      for(m = 0;m < tam_pastilha;m++)
+        for(n = 0;n < 3*tam_pastilha;n += 3){
+          img->pixel[i + m][j + n] = vetor[menor_index].pixel[m][n];
+          img->pixel[i + m][j + n + 1] = vetor[menor_index].pixel[m][n + 1];
+          img->pixel[i + m][j + n + 2] = vetor[menor_index].pixel[m][n + 2];
+        }
+    }
+  return img;
+}
+
+int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){
+  int k, menor_index = 0;
+  double distancia = 0, menor = 9999999;
+  int r = 0, g = 0, b = 0;
+
+  for(k = 0;k < tam_vetor;k++){
+    r = (cor->r - vetor[k].cor_imagem->r) * (cor->r - vetor[k].cor_imagem->r);
+    g = (cor->g - vetor[k].cor_imagem->g) * (cor->g - vetor[k].cor_imagem->g);
+    b = (cor->b - vetor[k].cor_imagem->b) * (cor->b - vetor[k].cor_imagem->b);
+
+    distancia = r + g + b;
+    distancia = sqrt(distancia);
+
+    if(distancia < menor){
+      menor = distancia;
+      menor_index = k;
+    }
+  }
+  return menor_index;
+}
+
+struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_pastilha, struct cores *cor){
+  long int i, j, r = 0, g = 0, b = 0;
+  int lim_lin, lim_col, total = 0;
+
+  total = tam_pastilha * tam_pastilha;
+  lim_lin = lin + tam_pastilha;
+  lim_col = col + 3*tam_pastilha;
+  cor->r = 0;
+  cor->g = 0;
+  cor->b = 0;
+  for(i = lin;i < lim_lin;i++){
+    for(j = col;j < lim_col - 2;j += 3){
+      b += (int)(img->pixel[i][j]) * (int)(img->pixel[i][j]);
+      r += (int)(img->pixel[i][j + 1]) * (int)(img->pixel[i][j + 1]);
+      g += (int)(img->pixel[i][j + 2]) * (int)(img->pixel[i][j + 2]);
+    }
+  }
+  cor->r = sqrt(r/total);
+  cor->g = sqrt(g/total);
+  cor->b = sqrt(b/total);
+  //printf("Cor media: %d~%d x %d~%d - R: %d G: %d B %d\n", lin, lim_lin, col, lim_col, cor->r, cor->g, cor->b);
+  return cor;
+}
+
+struct imagem *aloca_vetor(int tam_vetor){
+  struct imagem *vetor;
+  vetor = malloc(tam_vetor * sizeof(*vetor));
+  if(vetor == NULL)
+  	print_erro();
+  //fprintf(stderr, "Vetor de imagens criado\n");
   return vetor;
 }
 
@@ -206,10 +310,32 @@ void aloca_pixel(struct imagem *img){
   for(i = 0;i < img->altura;i++)
   	img->pixel[i] = malloc(3 * img->altura * sizeof(img->pixel));
 
-  if(img->pixel == NULL){
-  	fprintf(stderr, "Erro ao alocar matriz de pixel!\n");
-  	exit(1);
+  if(img->pixel == NULL)
+  	print_erro();
+}
+
+struct imagem *aloca_imagem(){
+  struct imagem *img;
+  img = malloc(sizeof(*img));
+  if(img == NULL)
+  	print_erro();
+  return img;
+}
+
+void libera_memoria(struct imagem *vetor, struct imagem *img, int tam){
+  int i, j;
+
+  for(i = 0;i < tam;i++){
+    for(j = 0;j < vetor[i].altura;j++)
+      free(vetor[i].pixel[j]);
+    free(vetor[i].pixel);
   }
+  free(vetor);
+
+  for(i = 0;i < img->altura;i++)
+    free(img->pixel[i]);
+  free(img->pixel);
+  free(img);
 }
 
 char verifica_tipo_pastilha(FILE *arq){
