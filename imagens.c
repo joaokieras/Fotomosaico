@@ -85,8 +85,8 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
   FILE *pastilha;
   DIR *diretorio_pastilhas;
   struct dirent *dir;
-  char caminho_dir[100], tipo_pastilha;
-  int tam_pastilha, i = 0;
+  char caminho_dir[100], tipo_pastilha[2];
+  int tam_pastilha1, tam_pastilha2, max_brilho, i = 0;
   
   strcpy(caminho_dir, nome_dir);
   diretorio_pastilhas = opendir(nome_dir);
@@ -103,16 +103,19 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
   	if(dir->d_type == DT_REG){
   	  strcat(caminho_dir, dir->d_name);
   	  pastilha = fopen(caminho_dir, "r");
-  	  tipo_pastilha = verifica_tipo_pastilha(pastilha);
-  	  if(tipo_pastilha != '3' && tipo_pastilha != '6'){
-  	  	fprintf(stderr, "Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha);
+  	  fscanf(pastilha, "%s", tipo_pastilha);
+  	  if(tipo_pastilha[1] != '3' && tipo_pastilha[1] != '6'){
+  	  	fprintf(stderr, "Tipo de pastilha invalido! (P%c) Tente novamente\n", tipo_pastilha[1]);
   	  	exit(1);
   	  }
-  	  tam_pastilha = verifica_tam_pastilha(pastilha);
+  	  fscanf(pastilha, "%d", &tam_pastilha1);
+  	  fscanf(pastilha, "%d", &tam_pastilha2);
+  	  fscanf(pastilha, "%d", &max_brilho);
+  	  getc(pastilha); // \n
   	  // Faz a cópia de dados da pastilha para struct imagem
-  	  vetor[i].tipo = tipo_pastilha;
-  	  vetor[i].altura = tam_pastilha;
-  	  vetor[i].largura = tam_pastilha;
+  	  vetor[i].tipo = tipo_pastilha[1];
+  	  vetor[i].altura = tam_pastilha1;
+  	  vetor[i].largura = tam_pastilha2;
   	  aloca_pixel(&vetor[i]);
   	  if(vetor[i].tipo == '6')
         vetor[i] = calcula_cor_P6(&vetor[i], pastilha);
@@ -134,12 +137,10 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
 
 // Para calcular a cor de PPM P3 é utilizado fscanf
 struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
-  int r = 0, g = 0, b = 0;
+  float r = 0, g = 0, b = 0;
   int i, j, numero, total;
   
   total = img->altura * img->largura;
-  rewind(arq);
-  fseek(arq, 13, SEEK_SET);
   // Neste método é necessário ler 1 número por vez
   // Copia números da imagem PPM para matriz pixel[i][j]
   for(i = 0;i < img->altura;i++)
@@ -166,12 +167,10 @@ struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
 
 // Para calcular a cor de PPM P6 é utilizado fread
 struct imagem calcula_cor_P6(struct imagem *img, FILE *arq){
-  int r = 0, g = 0, b = 0;
+  float r = 0, g = 0, b = 0;
   int i, j, total = 0;
 
   total = img->altura * img->largura;
-  rewind(arq);
-  fseek(arq, 13, SEEK_SET);
   // Lê linha por linha do arquivo da pastilha (blocos de números)
   for(i = 0;i < img->altura;i++)
   	fread(img->pixel[i], 1, 3 * img->largura, arq);
@@ -193,8 +192,8 @@ struct imagem calcula_cor_P6(struct imagem *img, FILE *arq){
 }
 
 struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int padrao){
-  int tam_img1, tam_img2;
-  char img_tipo;
+  int tam_img1, tam_img2, max_brilho;
+  char img_tipo[2];
   FILE *aux;
 
   if(padrao)
@@ -206,11 +205,13 @@ struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int
   	  exit(1);
     }
   }
-  img_tipo = verifica_tipo_pastilha(aux);
+  fscanf(aux, "%s", img_tipo);
   fscanf(aux, "%d", &tam_img1);
   fscanf(aux, "%d", &tam_img2);
+  fscanf(aux, "%d", &max_brilho);
+  getc(aux);
   aloca_pixel(img);
-  img->tipo = img_tipo;
+  img->tipo = img_tipo[1];
   img->altura = tam_img2;
   img->largura = tam_img1;
   if(img->tipo == '6')
@@ -271,8 +272,8 @@ void gera_imagem_saida(struct imagem *img_in, FILE *img_out){
 
 int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){
   int k, menor_index = 0;
-  double distancia = 0, menor = 9999999;
-  int r = 0, g = 0, b = 0;
+  float distancia = 0, menor = 9999999;
+  float r = 0, g = 0, b = 0;
 
   for(k = 0;k < tam_vetor;k++){
     r = (cor->r - vetor[k].cor_imagem->r) * (cor->r - vetor[k].cor_imagem->r);
@@ -291,7 +292,8 @@ int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){
 }
 
 struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_pastilha, struct cores *cor){
-  long int i, j, r = 0, g = 0, b = 0;
+  long int i, j;
+  float r = 0, g = 0, b = 0;
   int lim_lin, lim_col, total = 0;
 
   total = tam_pastilha * tam_pastilha;
@@ -302,15 +304,20 @@ struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_past
   cor->b = 0;
   for(i = lin;i < lim_lin;i++){
     for(j = col;j < lim_col - 2;j += 3){
-      b += (int)(img->pixel[i][j]) * (int)(img->pixel[i][j]);
-      r += (int)(img->pixel[i][j + 1]) * (int)(img->pixel[i][j + 1]);
-      g += (int)(img->pixel[i][j + 2]) * (int)(img->pixel[i][j + 2]);
+      r += (int)(img->pixel[i][j]) * (int)(img->pixel[i][j]);
+      g += (int)(img->pixel[i][j + 1]) * (int)(img->pixel[i][j + 1]);
+      b += (int)(img->pixel[i][j + 2]) * (int)(img->pixel[i][j + 2]);
     }
   }
   cor->r = sqrt(r/total);
   cor->g = sqrt(g/total);
   cor->b = sqrt(b/total);
-  //printf("Cor media: %d~%d x %d~%d - R: %d G: %d B %d\n", lin, lim_lin, col, lim_col, cor->r, cor->g, cor->b);
+  // Trata imagens mais escuras
+  if(cor->r < 75 && cor->g < 75 && cor->b < 75){
+  	cor->r = cor->r * 1.5;
+  	cor->g = cor->g * 1.5;
+  	cor->b = cor->b * 1.5;
+  }
   return cor;
 }
 

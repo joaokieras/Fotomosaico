@@ -19,4 +19,3 @@ clean:
 
 purge:
 	-rm -f $(OBJS) $(EXEC)
-

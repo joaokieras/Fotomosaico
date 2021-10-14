@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
   fprintf(stderr, "Input imagem is PPM P%c, %dx%d pixels\n", img_in->tipo, img_in->altura, img_in->largura);
   fprintf(stderr, "Building mosaic image\n");
   img_in = constroi_mosaico(img_in, vetor_pastilhas, tam_dir); 
-
+  //fprintf(stderr, "Cores medias img principal: %f %f %f\n", img_in->cor_imagem->r, img_in->cor_imagem->g, img_in->cor_imagem->b);
   // Arquivo de saída
   FILE *img_saida;
   if(flag_out){

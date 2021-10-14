@@ -3,9 +3,9 @@
 
 // Estruturas utilizadas
 struct cores{
-  int r;
-  int g;
-  int b;
+  float r;
+  float g;
+  float b;
 };
 typedef struct cores cores; 
 
