@@ -81,7 +81,7 @@ int verifica_diretorio(char *nome_dir){
 }
 
 // Realiza a cópia de dados da pastilha para o vetor de imagens
-struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_dir){
+imagem *carrega_pastilhas(imagem *vetor, char *nome_dir, int tam_dir){
   FILE *pastilha;
   DIR *diretorio_pastilhas;
   struct dirent *dir;
@@ -136,7 +136,7 @@ struct imagem *carrega_pastilhas(struct imagem *vetor, char *nome_dir, int tam_d
 }
 
 // Para calcular a cor de PPM P3 é utilizado fscanf
-struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
+imagem calcula_cor_P3(imagem *img, FILE *arq){
   float r = 0, g = 0, b = 0;
   int i, j, numero, total;
   
@@ -166,7 +166,7 @@ struct imagem calcula_cor_P3(struct imagem *img, FILE *arq){
 }
 
 // Para calcular a cor de PPM P6 é utilizado fread
-struct imagem calcula_cor_P6(struct imagem *img, FILE *arq){
+imagem calcula_cor_P6(imagem *img, FILE *arq){
   float r = 0, g = 0, b = 0;
   int i, j, total = 0;
 
@@ -191,7 +191,7 @@ struct imagem calcula_cor_P6(struct imagem *img, FILE *arq){
   return *img;
 }
 
-struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int padrao){
+imagem *carrega_imagem(imagem *img, char *nome_img, FILE *arq, int padrao){
   int tam_img1, tam_img2, max_brilho;
   char img_tipo[2];
   FILE *aux;
@@ -222,7 +222,7 @@ struct imagem *carrega_imagem(struct imagem *img, char *nome_img, FILE *arq, int
   return img;
 }
 
-struct imagem *constroi_mosaico(struct imagem *img, struct imagem *vetor, int tam_vetor){
+imagem *constroi_mosaico(imagem *img, imagem *vetor, int tam_vetor){
   int tam_pastilha, i, j, m, n, menor_index = 0, lim_altura, lim_largura;
   struct cores *cor;
 
@@ -250,7 +250,7 @@ struct imagem *constroi_mosaico(struct imagem *img, struct imagem *vetor, int ta
   return img;
 }
 
-void gera_imagem_saida(struct imagem *img_in, FILE *img_out){
+void gera_imagem_saida(imagem *img_in, FILE *img_out){
   int i, j;
 
   fprintf(img_out, "P%c\n", img_in->tipo);
@@ -270,7 +270,7 @@ void gera_imagem_saida(struct imagem *img_in, FILE *img_out){
   fclose(img_out);
 }
 
-int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){
+int procura_pastilha(cores *cor, imagem *vetor, int tam_vetor){
   int k, menor_index = 0;
   float distancia = 0, menor = 9999999;
   float r = 0, g = 0, b = 0;
@@ -291,7 +291,7 @@ int procura_pastilha(struct cores *cor, struct imagem *vetor, int tam_vetor){
   return menor_index;
 }
 
-struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_pastilha, struct cores *cor){
+cores *calcula_cor_img(imagem *img, int lin, int col, int tam_pastilha, cores *cor){
   long int i, j;
   float r = 0, g = 0, b = 0;
   int lim_lin, lim_col, total = 0;
@@ -321,8 +321,8 @@ struct cores *calcula_cor_img(struct imagem *img, int lin, int col, int tam_past
   return cor;
 }
 
-struct imagem *aloca_vetor(int tam_vetor){
-  struct imagem *vetor;
+imagem *aloca_vetor(int tam_vetor){
+  imagem *vetor;
   vetor = malloc(tam_vetor * sizeof(*vetor));
   if(vetor == NULL)
   	print_erro();
@@ -330,7 +330,7 @@ struct imagem *aloca_vetor(int tam_vetor){
   return vetor;
 }
 
-void aloca_pixel(struct imagem *img){
+void aloca_pixel(imagem *img){
   int i;
 
   img->pixel = malloc(img->altura * sizeof(img->pixel));
@@ -341,15 +341,15 @@ void aloca_pixel(struct imagem *img){
   	print_erro();
 }
 
-struct imagem *aloca_imagem(){
-  struct imagem *img;
+imagem *aloca_imagem(){
+  imagem *img;
   img = malloc(sizeof(*img));
   if(img == NULL)
   	print_erro();
   return img;
 }
 
-void libera_memoria(struct imagem *vetor, struct imagem *img, int tam){
+void libera_memoria(imagem *vetor, imagem *img, int tam){
   int i, j;
 
   for(i = 0;i < tam;i++){
