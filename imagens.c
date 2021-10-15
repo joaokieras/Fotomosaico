@@ -210,10 +210,10 @@ imagem *carrega_imagem(imagem *img, char *nome_img, FILE *arq, int padrao){
   fscanf(aux, "%d", &tam_img2);
   fscanf(aux, "%d", &max_brilho);
   getc(aux);
-  aloca_pixel(img);
   img->tipo = img_tipo[1];
   img->altura = tam_img2;
   img->largura = tam_img1;
+  aloca_pixel(img);
   if(img->tipo == '6')
   	*img = calcula_cor_P6(img, aux);
   else
