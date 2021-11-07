@@ -116,6 +116,7 @@ imagem *carrega_pastilhas(imagem *vetor, char *nome_dir, int tam_dir){
   	  vetor[i].tipo = tipo_pastilha[1];
   	  vetor[i].altura = tam_pastilha1;
   	  vetor[i].largura = tam_pastilha2;
+  	  vetor[i].brilho_max = max_brilho;
   	  aloca_pixel(&vetor[i]);
   	  if(vetor[i].tipo == '6')
         vetor[i] = calcula_cor_P6(&vetor[i], pastilha);
@@ -213,6 +214,7 @@ imagem *carrega_imagem(imagem *img, char *nome_img, FILE *arq, int padrao){
   img->tipo = img_tipo[1];
   img->altura = tam_img2;
   img->largura = tam_img1;
+  img->brilho_max = max_brilho;
   aloca_pixel(img);
   if(img->tipo == '6')
   	*img = calcula_cor_P6(img, aux);
@@ -224,9 +226,9 @@ imagem *carrega_imagem(imagem *img, char *nome_img, FILE *arq, int padrao){
 
 imagem *constroi_mosaico(imagem *img, imagem *vetor, int tam_vetor){
   int tam_pastilha, i, j, m, n, menor_index = 0, lim_altura, lim_largura;
-  struct cores *cor;
+  cores *cor;
 
-  cor = malloc(sizeof(cor));
+  cor = malloc(sizeof(cores));
   if(cor == NULL)
     print_erro();
 
@@ -247,6 +249,7 @@ imagem *constroi_mosaico(imagem *img, imagem *vetor, int tam_vetor){
           img->pixel[i + m][j + n + 2] = vetor[menor_index].pixel[m][n + 2];
         }
     }
+  free(cor);
   return img;
 }
 
@@ -297,6 +300,8 @@ cores *calcula_cor_img(imagem *img, int lin, int col, int tam_pastilha, cores *c
   int lim_lin, lim_col, total = 0;
 
   total = tam_pastilha * tam_pastilha;
+  // lin e col são as coordenadas da img principal e lim_lin e lim_col é até onde o loop irá percorrer
+  // ex. img[60][60](coord.) com tiles 20 irá até img[80][80]
   lim_lin = lin + tam_pastilha;
   lim_col = col + 3*tam_pastilha;
   cor->r = 0;
@@ -312,7 +317,7 @@ cores *calcula_cor_img(imagem *img, int lin, int col, int tam_pastilha, cores *c
   cor->r = sqrt(r/total);
   cor->g = sqrt(g/total);
   cor->b = sqrt(b/total);
-  // Trata imagens mais escuras
+  // Trata imagens mais escuras (brilho total abaixo de 30%)
   if(cor->r < 75 && cor->g < 75 && cor->b < 75){
   	cor->r = cor->r * 1.5;
   	cor->g = cor->g * 1.5;
@@ -323,10 +328,10 @@ cores *calcula_cor_img(imagem *img, int lin, int col, int tam_pastilha, cores *c
 
 imagem *aloca_vetor(int tam_vetor){
   imagem *vetor;
+
   vetor = malloc(tam_vetor * sizeof(*vetor));
   if(vetor == NULL)
   	print_erro();
-  //fprintf(stderr, "Vetor de imagens criado\n");
   return vetor;
 }
 
@@ -343,6 +348,7 @@ void aloca_pixel(imagem *img){
 
 imagem *aloca_imagem(){
   imagem *img;
+
   img = malloc(sizeof(*img));
   if(img == NULL)
   	print_erro();
@@ -356,23 +362,27 @@ void libera_memoria(imagem *vetor, imagem *img, int tam){
     for(j = 0;j < vetor[i].altura;j++)
       free(vetor[i].pixel[j]);
     free(vetor[i].pixel);
+    free(vetor[i].cor_imagem);
   }
   free(vetor);
 
   for(i = 0;i < img->altura;i++)
     free(img->pixel[i]);
   free(img->pixel);
+  free(img->cor_imagem);
   free(img);
 }
 
 char verifica_tipo_pastilha(FILE *arq){
   char p_tipo[2];
+
   fscanf(arq, "%s\n", p_tipo);
   return p_tipo[1];	
 }
 
 int verifica_tam_pastilha(FILE *arq){
   int tam;
+  
   fscanf(arq, "%d", &tam);
   return tam;
 }

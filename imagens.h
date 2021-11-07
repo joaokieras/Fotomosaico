@@ -14,6 +14,7 @@ struct imagem{
   char tipo;
   int altura;
   int largura;
+  int brilho_max;
   unsigned char **pixel;
 };
 typedef struct imagem imagem;

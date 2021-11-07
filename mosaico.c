@@ -26,6 +26,10 @@ int main(int argc, char *argv[]){
         print_help();
         exit(1);
         break;
+      default:
+        fprintf(stderr, "Digite -h(help)!\n");
+        exit(1);
+        break;
     }
 
   // Conta pastilhas no diretorio
