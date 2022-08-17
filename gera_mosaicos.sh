@@ -13,18 +13,10 @@
 	else
 		AUX=$ARQ
 	fi
-	printf "\nCriando mosaico 10\n\n"
-	./mosaico < $AUX > saida10.ppm -p tiles/tiles10/
-	printf "\n=============================================\n"
-	printf "\nCriando mosaico 16\n\n"
-	./mosaico < $AUX > saida16.ppm -p tiles/tiles16/
-	printf "\n=============================================\n"
-	printf "\nCriando mosaico 20\n\n"
-	./mosaico < $AUX > saida20.ppm -p tiles/tiles20/
-	printf "\n=============================================\n"
-	printf "\nCriando mosaico 30\n\n"
-	./mosaico < $AUX > saida30.ppm -p tiles/tiles30/
-	printf "\n=============================================\n"
-	printf "\nCriando mosaico 32\n\n"
-	./mosaico < $AUX > saida32.ppm -p tiles/tiles32/
 
+	for i in 10 16 20 30 32 
+	do
+		printf "\nCriando mosaico $i\n\n"
+		./mosaico < $AUX > saida$i.ppm -p tiles/tiles$i/
+		printf "\n#############################################\n"
+	done
